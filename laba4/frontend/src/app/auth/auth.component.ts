@@ -20,7 +20,7 @@ interface AuthResponse {
 })
 
 
-export class AuthComponent {
+export class AuthComponent implements OnInit {
   isLoginMode = true;
   username = '';
   password = '';
@@ -34,6 +34,10 @@ export class AuthComponent {
     private router: Router,
     private cdr: ChangeDetectorRef
   ) {}
+
+  ngOnInit() {
+    localStorage.removeItem('token');
+  }
 
   toggleMode() {
     this.isLoginMode = !this.isLoginMode;
@@ -58,7 +62,7 @@ export class AuthComponent {
       password: this.password
     };
 
-    this.http.post<AuthResponse>(`http://localhost:8080${endpoint}`, body, { withCredentials: true })
+    this.http.post<AuthResponse>(`http://localhost:8080${endpoint}`, body)
       .subscribe({
         next: (response) => {
 
@@ -71,10 +75,17 @@ export class AuthComponent {
             this.router.navigate(['/']);
 
           } else {
+            localStorage.removeItem('token');
             this.errorMessage = response?.message || 'Ошибка авторизации';
             this.password = '';
             this.cdr.detectChanges();
        }
+        },
+        error: (error) => {
+          localStorage.removeItem('token');
+          this.password = '';
+          this.errorMessage = error?.error?.message || 'Сервер недоступен или ошибка авторизации';
+          this.cdr.detectChanges();
         }
       });
   }

@@ -59,6 +59,11 @@ export class HomeComponent implements OnInit {
       },
       error: (error) => {
         console.error('Error loading points:', error);
+        if (error?.status === 401 || error?.status === 403) {
+          localStorage.removeItem('token');
+          localStorage.removeItem('username');
+          this.router.navigate(['/auth']);
+        }
       }
     });
   }
@@ -125,6 +130,12 @@ export class HomeComponent implements OnInit {
       },
       error: (error) => {
         console.error('Error saving point:', error);
+        if (error?.status === 401 || error?.status === 403) {
+          localStorage.removeItem('token');
+          localStorage.removeItem('username');
+          this.router.navigate(['/auth']);
+          return;
+        }
         alert('Ошибка при сохранении точки: ' + (error.error?.message || error.message));
       }
     });
