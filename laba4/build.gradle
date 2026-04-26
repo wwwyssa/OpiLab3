@@ -105,12 +105,11 @@ springBoot {
 	mainClass = 'com.example.laba4.Laba4Application'
 }
 
-tasks.named('test') {
-	useJUnitPlatform()
+tasks.named('bootJar') {
+    archiveFileName = 'app.jar'
 }
 
-// Run jOOQ code generation only when explicitly requested:
-// .\gradlew generateJooq -PwithJooq=true
+
 tasks.named('generateJooq') {
 	onlyIf { project.hasProperty('withJooq') }
 }
