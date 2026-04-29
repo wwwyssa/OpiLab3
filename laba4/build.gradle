@@ -11,7 +11,7 @@ version = '0.0.1-SNAPSHOT'
 
 java {
 	toolchain {
-		languageVersion = JavaLanguageVersion.of(21)
+		languageVersion = JavaLanguageVersion.of(17)
 	}
 }
 
@@ -20,37 +20,22 @@ repositories {
 }
 
 dependencies {
-
-	// --- Spring ---
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 	implementation 'org.springframework.boot:spring-boot-starter-jooq'
 	implementation 'org.springframework.boot:spring-boot-starter-security'
 	implementation 'org.springframework.boot:spring-boot-starter-validation'
 
-	// --- PostgreSQL ---
 	runtimeOnly 'org.postgresql:postgresql'
 
-	// --- JWT ---
 	implementation 'io.jsonwebtoken:jjwt-api:0.12.3'
 	runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.12.3'
 	runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.12.3'
 
-	// --- Lombok ---
 	compileOnly 'org.projectlombok:lombok:1.18.38'
 	annotationProcessor 'org.projectlombok:lombok:1.18.38'
 
-	// --- Dev ---
-	developmentOnly 'org.springframework.boot:spring-boot-devtools'
-
-	// --- WAR ---
-	providedRuntime 'org.springframework.boot:spring-boot-starter-tomcat'
-
-	// --- Tests ---
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
-	testImplementation 'org.springframework.security:spring-security-test'
-	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 
-	// --- jOOQ generator ---
 	jooqGenerator 'org.postgresql:postgresql'
 }
 
@@ -105,11 +90,61 @@ springBoot {
 	mainClass = 'com.example.laba4.Laba4Application'
 }
 
-tasks.named('bootJar') {
-    archiveFileName = 'app.jar'
+
+tasks.register('compile') {
+	group = 'build'
+	dependsOn tasks.named('compileJava')
 }
 
 
-tasks.named('generateJooq') {
-	onlyIf { project.hasProperty('withJooq') }
+tasks.register('music') {
+	group = 'custom'
+	doLast {
+		try {
+			if (!java.awt.Desktop.isDesktopSupported()) return
+			def musicFile = rootProject.file('merin.mp3')
+			if (!musicFile.exists()) return
+			java.awt.Desktop.getDesktop().open(musicFile)
+		} catch (Exception e) {
+			
+		}
+	}
+}
+
+tasks.named('bootJar') {
+	archiveFileName = 'app.jar'
+}
+
+tasks.named('build') {
+	finalizedBy(tasks.named('music'))
+}
+
+tasks.named('test') {
+	useJUnitPlatform()
+	reports {
+        html.required = false
+        junitXml.required = true
+    }
+}
+
+tasks.register('report') {
+    group = 'verification'
+    description = 'Make tests and then add ti git'
+    dependsOn tasks.named('test')
+
+    doLast {
+        def testResultsDir = file("$buildDir/test-results/test")
+
+        if (!testResultsDir.exists()) {
+            throw new GradleException("Test results directory not found: $testResultsDir")
+        }
+
+        exec {
+            commandLine 'git', 'add', testResultsDir.absolutePath
+        }
+
+        exec {
+            commandLine 'git', 'commit', '-m', 'Add test report'
+        }
+    }
 }
