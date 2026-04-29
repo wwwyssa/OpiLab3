@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.laba4.auth.AuthServiceTest" tests="5" skipped="0" failures="0" errors="0" timestamp="2026-04-29T10:43:06.496Z" hostname="LAPTOP-UVESS5EQ" time="5.759">
+  <properties/>
+  <testcase name="login_success_withValidCredentials()" classname="com.example.laba4.auth.AuthServiceTest" time="5.58"/>
+  <testcase name="login_fails_whenUserNotFound()" classname="com.example.laba4.auth.AuthServiceTest" time="0.06"/>
+  <testcase name="register_fails_whenUsernameExists()" classname="com.example.laba4.auth.AuthServiceTest" time="0.012"/>
+  <testcase name="login_fails_whenPasswordMismatch()" classname="com.example.laba4.auth.AuthServiceTest" time="0.021"/>
+  <testcase name="register_success_whenUsernameNotExists()" classname="com.example.laba4.auth.AuthServiceTest" time="0.05"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>
