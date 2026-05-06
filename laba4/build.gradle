@@ -1,6 +1,5 @@
 plugins {
 	id 'java'
-	id 'war'
 	id 'org.springframework.boot' version '3.2.4'
 	id 'io.spring.dependency-management' version '1.1.4'
 	id 'nu.studer.jooq' version '9.0'
@@ -120,7 +119,9 @@ tasks.named('build') {
 }
 
 tasks.named('test') {
-	useJUnitPlatform()
+	useJUnitPlatform {
+		includeTags 'unit'
+	}
 	reports {
         html.required = false
         junitXml.required = true

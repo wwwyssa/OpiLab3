@@ -3,6 +3,7 @@ package com.example.laba4.auth;
 import com.example.laba4.auth.dto.AuthResponse;
 import com.example.laba4.auth.dto.LoginRequest;
 import com.example.laba4.auth.dto.RegisterRequest;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -17,6 +18,7 @@ import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
+@Tag("unit")
 class AuthServiceTest {
 
     @Mock
@@ -39,7 +41,8 @@ class AuthServiceTest {
 
         when(userRepository.findByUsername("testName")).thenReturn(Optional.empty());
         when(passwordEncoder.encode("123")).thenReturn("hash-123");
-        when(userRepository.create("testName", "hash-123")).thenReturn(new UserRepository.UserData(1L, "testName", "hash-123"));
+        when(userRepository.create("testName", "hash-123"))
+                .thenReturn(new UserRepository.UserData(1L, "testName", "hash-123"));
         when(jwtUtil.generateToken("testName")).thenReturn("tok-1");
 
         AuthResponse res = authService.register(req);

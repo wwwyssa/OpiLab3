@@ -1,10 +1,12 @@
 package com.example.laba4.pointChecker;
 
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+@Tag("unit")
 class HitCheckServiceTest {
 
     private final HitCheckService hitCheckService = new HitCheckService();
