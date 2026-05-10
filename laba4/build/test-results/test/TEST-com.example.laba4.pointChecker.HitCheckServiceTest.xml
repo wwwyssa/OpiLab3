@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="com.example.laba4.pointChecker.HitCheckServiceTest" tests="7" skipped="0" failures="0" errors="0" timestamp="2026-04-29T10:43:12.296Z" hostname="LAPTOP-UVESS5EQ" time="0.046">
+<testsuite name="com.example.laba4.pointChecker.HitCheckServiceTest" tests="7" skipped="0" failures="0" errors="0" timestamp="2026-05-10T13:56:18.399Z" hostname="LAPTOP-UVESS5EQ" time="0.014">
   <properties/>
-  <testcase name="checkFalse()" classname="com.example.laba4.pointChecker.HitCheckServiceTest" time="0.002"/>
-  <testcase name="checkFirst()" classname="com.example.laba4.pointChecker.HitCheckServiceTest" time="0.003"/>
-  <testcase name="checkThird()" classname="com.example.laba4.pointChecker.HitCheckServiceTest" time="0.002"/>
+  <testcase name="checkFalse()" classname="com.example.laba4.pointChecker.HitCheckServiceTest" time="0.001"/>
+  <testcase name="checkFirst()" classname="com.example.laba4.pointChecker.HitCheckServiceTest" time="0.001"/>
+  <testcase name="checkThird()" classname="com.example.laba4.pointChecker.HitCheckServiceTest" time="0.001"/>
   <testcase name="checkBorder()" classname="com.example.laba4.pointChecker.HitCheckServiceTest" time="0.001"/>
-  <testcase name="checkFourth()" classname="com.example.laba4.pointChecker.HitCheckServiceTest" time="0.002"/>
-  <testcase name="checkTrue()" classname="com.example.laba4.pointChecker.HitCheckServiceTest" time="0.001"/>
-  <testcase name="checkSecond()" classname="com.example.laba4.pointChecker.HitCheckServiceTest" time="0.022"/>
+  <testcase name="checkFourth()" classname="com.example.laba4.pointChecker.HitCheckServiceTest" time="0.001"/>
+  <testcase name="checkTrue()" classname="com.example.laba4.pointChecker.HitCheckServiceTest" time="0.0"/>
+  <testcase name="checkSecond()" classname="com.example.laba4.pointChecker.HitCheckServiceTest" time="0.001"/>
   <system-out><![CDATA[]]></system-out>
   <system-err><![CDATA[]]></system-err>
 </testsuite>
