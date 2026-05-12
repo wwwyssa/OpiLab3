@@ -1,5 +1,6 @@
-package com.example.laba4.pointChecker;
+package com.example.laba4.unit;
 
+import com.example.laba4.pointChecker.HitCheckService;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 

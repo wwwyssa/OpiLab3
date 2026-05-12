@@ -52,4 +52,8 @@ public class UserRepository {
 
         return new UserData(rec.get(ID), rec.get(USERNAME), rec.get(PASSWORD_HASH));
     }
+
+    public void deleteAll() {
+        dsl.deleteFrom(USERS).execute();
+    }
 }

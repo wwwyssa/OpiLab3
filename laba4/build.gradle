@@ -34,12 +34,16 @@ dependencies {
 	annotationProcessor 'org.projectlombok:lombok:1.18.38'
 
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	testImplementation 'org.seleniumhq.selenium:selenium-java:4.15.0'
 
 	jooqGenerator 'org.postgresql:postgresql'
 }
 
 jooq {
-	version = '3.18.7'
+	version = '3.18.13'
+	def jooqDbUrl = System.getenv('JOOQ_DB_URL') ?: 'jdbc:postgresql://localhost:5432/laba4'
+	def jooqDbUser = System.getenv('JOOQ_DB_USER') ?: 'postgres'
+	def jooqDbPassword = System.getenv('JOOQ_DB_PASSWORD') ?: '123'
 
 	configurations {
 		main {
@@ -47,9 +51,9 @@ jooq {
 
 				jdbc {
 					driver = 'org.postgresql.Driver'
-					url = 'jdbc:postgresql://localhost:5432/laba4'
-					user = 'postgres'
-					password = '123'
+					url = jooqDbUrl
+					user = jooqDbUser
+					password = jooqDbPassword
 				}
 
 				generator {
@@ -65,6 +69,8 @@ jooq {
 						pojos = true
 						records = true
 						daos = true
+						generatedAnnotationDate = false
+
 					}
 
 					target {
@@ -85,6 +91,10 @@ sourceSets {
 	}
 }
 
+tasks.named('compileJava') {
+	dependsOn tasks.named('generateJooq')
+}
+
 springBoot {
 	mainClass = 'com.example.laba4.Laba4Application'
 }
@@ -101,17 +111,16 @@ tasks.register('music') {
 	doLast {
 		try {
 			if (!java.awt.Desktop.isDesktopSupported()) return
-			def musicFile = rootProject.file('merin.mp3')
+			def musicFile = rootProject.file('lowcortizol.mp3')
 			if (!musicFile.exists()) return
 			java.awt.Desktop.getDesktop().open(musicFile)
 		} catch (Exception e) {
-			
 		}
 	}
 }
 
 tasks.named('bootJar') {
-	archiveFileName = 'app.jar'
+	archiveFileName = 'laba4.jar'
 }
 
 tasks.named('build') {
@@ -122,15 +131,36 @@ tasks.named('test') {
 	useJUnitPlatform {
 		includeTags 'unit'
 	}
+	outputs.upToDateWhen { false }
 	reports {
         html.required = false
         junitXml.required = true
     }
 }
 
+
+tasks.register('functionalTest', Test) {
+	group = 'verification'
+	description = 'Runs Selenium functional tests'
+	useJUnitPlatform {
+		includeTags 'functional'
+	}
+	outputs.upToDateWhen { false }
+	reports {
+		html.required = false
+		junitXml.required = true
+	}
+	systemProperty 'selenium.headless', System.getProperty('selenium.headlessв')
+}
+
+tasks.named('check') {
+	dependsOn tasks.named('functionalTest')
+}
+
+
 tasks.register('report') {
     group = 'verification'
-    description = 'Make tests and then add ti git'
+    description = 'Make tests and then add to git'
     dependsOn tasks.named('test')
 
     doLast {
@@ -140,12 +170,18 @@ tasks.register('report') {
             throw new GradleException("Test results directory not found: $testResultsDir")
         }
 
-        exec {
-            commandLine 'git', 'add', testResultsDir.absolutePath
-        }
+       try {
+            exec {
+                commandLine 'git', 'add', testResultsDir.absolutePath
+            }
 
-        exec {
-            commandLine 'git', 'commit', '-m', 'Add test report'
+            exec {
+                commandLine 'git', 'commit', '-m', 'Add test report'
+            }
+
+            logger.lifecycle("Test results committed to git (or git not available)")
+        } catch (Exception e) {
+            logger.warn("Could not commit test results to git: ${e.message}")
         }
     }
 }

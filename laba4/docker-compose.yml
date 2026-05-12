@@ -11,19 +11,47 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  builder:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: builder
+    container_name: laba4-builder
+    depends_on:
+      db:
+        condition: service_healthy
+    working_dir: /app
+    environment:
+      JOOQ_DB_URL: jdbc:postgresql://db:5432/laba4
+      JOOQ_DB_USER: postgres
+      JOOQ_DB_PASSWORD: 123
+    command: ["./gradlew", "generateJooq", "bootJar", "--no-daemon"]
+    volumes:
+      - ./build/libs:/app/build/libs
+
   app:
     build:
       context: .
       dockerfile: Dockerfile
+      target: runtime
     container_name: laba4-backend
     depends_on:
-      - db
+      builder:
+        condition: service_completed_successfully
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/laba4
       SPRING_DATASOURCE_USERNAME: postgres
       SPRING_DATASOURCE_PASSWORD: 123
     ports:
       - "8080:8080"
+    volumes:
+      - ./build/libs:/app/build/libs:ro
 
   frontend:
     build:

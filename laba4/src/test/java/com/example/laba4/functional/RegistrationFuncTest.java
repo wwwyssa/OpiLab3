@@ -1,13 +1,6 @@
-package com.example.laba4.auth;
+package com.example.laba4.functional;
 
-import java.time.Duration;
-
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Tag;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
@@ -15,6 +8,8 @@ import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
+
+import java.time.Duration;
 
 @Tag("functional")
 @DisplayName("Selenium тесты для регистрации пользователей")
@@ -30,7 +25,7 @@ class RegistrationFuncTest {
     @BeforeEach
     void setUp() {
         ChromeOptions options = new ChromeOptions();
-        boolean headless = false;
+        boolean headless = Boolean.getBoolean("selenium.headless");
         if (headless) {
             options.addArguments("--headless=new");
         }

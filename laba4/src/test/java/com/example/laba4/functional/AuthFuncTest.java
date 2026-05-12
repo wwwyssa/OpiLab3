@@ -1,13 +1,6 @@
-package com.example.laba4.auth;
+package com.example.laba4.functional;
 
-import java.time.Duration;
-
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Tag;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
@@ -16,7 +9,9 @@ import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
-@Tag("functionalal")
+import java.time.Duration;
+
+@Tag("functional")
 @DisplayName("Selenium тесты для авторизации пользователей")
 class AuthFuncTest {
 
@@ -30,7 +25,7 @@ class AuthFuncTest {
     @BeforeEach
     void setUp() {
         ChromeOptions options = new ChromeOptions();
-        boolean headless = false;
+        boolean headless = Boolean.getBoolean("selenium.headless");
         if (headless) {
             options.addArguments("--headless=new");
         }
@@ -51,10 +46,9 @@ class AuthFuncTest {
     @Test
     @DisplayName("Успешный вход с валидными данными")
     void testSuccessfulLogin() {
-        String username = uniqueUsername("login_user_");
-        String password = "password123";
+        String username = "123";
+        String password = "123";
 
-        registerUser(username, password);
         openLoginForm();
         fillAuthForm(username, password);
         submitAuthForm();
@@ -69,10 +63,9 @@ class AuthFuncTest {
     @Test
     @DisplayName("Ошибка входа с неверным паролем")
     void testLoginWithWrongPassword() {
-        String username = uniqueUsername("wrong_password_user_");
-        String password = "password123";
+        String username = "123";
+        String password = "123";
 
-        registerUser(username, password);
         openLoginForm();
         fillAuthForm(username, "wrong-pass");
         submitAuthForm();
@@ -126,19 +119,6 @@ class AuthFuncTest {
         wait.until(ExpectedConditions.textToBe(By.tagName("h1"), "Вход"));
     }
 
-    private void registerUser(String username, String password) {
-        driver.get(AUTH_URL);
-        WebElement title = wait.until(ExpectedConditions.presenceOfElementLocated(By.tagName("h1")));
-        if (title.getText().contains("Вход")) {
-            driver.findElement(By.cssSelector(".toggle-mode button")).click();
-        }
-        wait.until(ExpectedConditions.textToBe(By.tagName("h1"), "Регистрация"));
-
-        fillAuthForm(username, password);
-        submitAuthForm();
-        wait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector("canvas#canvas")));
-    }
-
     private void fillAuthForm(String username, String password) {
         WebElement usernameInput = wait.until(ExpectedConditions.presenceOfElementLocated(By.id("username")));
         WebElement passwordInput = driver.findElement(By.id("password"));
@@ -157,7 +137,4 @@ class AuthFuncTest {
         return ((org.openqa.selenium.JavascriptExecutor) driver).executeScript(script);
     }
 
-    private String uniqueUsername(String prefix) {
-        return prefix + System.currentTimeMillis();
-    }
 }

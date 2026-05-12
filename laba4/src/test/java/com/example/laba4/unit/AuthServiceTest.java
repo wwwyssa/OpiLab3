@@ -1,5 +1,8 @@
-package com.example.laba4.auth;
+package com.example.laba4.unit;
 
+import com.example.laba4.auth.AuthService;
+import com.example.laba4.auth.JwtUtil;
+import com.example.laba4.auth.UserRepository;
 import com.example.laba4.auth.dto.AuthResponse;
 import com.example.laba4.auth.dto.LoginRequest;
 import com.example.laba4.auth.dto.RegisterRequest;
@@ -14,8 +17,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 @Tag("unit")

@@ -14,8 +14,7 @@ public class HitCheckService {
             return x <= r && y >= -r;
         }
         
-
-        if (x <= 0 && y <= 0) {
+        if (x < 0 && y < 0) {
             return y > -x - r;
         }
         

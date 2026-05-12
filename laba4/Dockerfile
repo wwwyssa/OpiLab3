@@ -8,11 +8,9 @@ COPY build.gradle build.gradle
 COPY src src
 
 RUN chmod +x gradlew
-RUN ./gradlew clean bootJar --no-daemon
 
-FROM eclipse-temurin:17-jdk
+FROM eclipse-temurin:17-jdk AS runtime
 WORKDIR /app
-COPY --from=builder /app/build/libs/app.jar app.jar
 
 EXPOSE 8080
-ENTRYPOINT ["java", "-jar", "app.jar"]
+ENTRYPOINT ["java", "-jar", "/app/build/libs/laba4.jar"]

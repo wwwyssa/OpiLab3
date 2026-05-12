@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, NgZone } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -23,7 +23,7 @@ export class HomeComponent implements OnInit {
   rValues = [0, 1, 2, 3, 4, 5];
   points: Array<{ x: number; y: number; r: number; hit: boolean }> = [];
 
-  constructor(private router: Router, private http: HttpClient) {}
+  constructor(private router: Router, private http: HttpClient, private ngZone: NgZone) {}
 
   ngOnInit() {
     const token = localStorage.getItem('token');
@@ -49,13 +49,16 @@ export class HomeComponent implements OnInit {
     this.http.get('http://localhost:8080/api/points', { headers }).subscribe({
       next: (response: any) => {
         console.log('Points loaded:', response);
-        this.points = response.map((point: any) => ({
-          x: point.x,
-          y: point.y,
-          r: point.r,
-          hit: point.hit
-        }));
-        this.drawGraph();
+        // Ensure change detection runs when called from outside Angular zone
+        this.ngZone.run(() => {
+          this.points = response.map((point: any) => ({
+            x: point.x,
+            y: point.y,
+            r: point.r,
+            hit: point.hit
+          }));
+          this.drawGraph();
+        });
       },
       error: (error) => {
         console.error('Error loading points:', error);
@@ -87,12 +90,14 @@ export class HomeComponent implements OnInit {
     const clickX = event.clientX - rect.left;
     const clickY = event.clientY - rect.top;
 
+    const scaleX = this.canvas.width / rect.width;
+    const scaleY = this.canvas.height / rect.height;
     const centerX = this.canvas.width / 2;
     const centerY = this.canvas.height / 2;
 
-    // Преобразуем экранные координаты в координаты графика
-    const graphX = (clickX - centerX) / 60;
-    const graphY = (centerY - clickY) / 60;
+
+    const graphX = ((clickX * scaleX) - centerX) / 60;
+    const graphY = (centerY - (clickY * scaleY)) / 60;
 
     console.log(`Clicked at: x=${graphX.toFixed(2)}, y=${graphY.toFixed(2)}, r=${this.rValue}`);
 
@@ -120,13 +125,16 @@ export class HomeComponent implements OnInit {
     this.http.post('http://localhost:8080/api/points', payload, { headers }).subscribe({
       next: (response: any) => {
         console.log('Point saved:', response);
-        this.points.push({
-          x: response.x,
-          y: response.y,
-          r: response.r,
-          hit: response.hit
+        // Ensure change detection runs when called from outside Angular zone
+        this.ngZone.run(() => {
+          this.points.push({
+            x: response.x,
+            y: response.y,
+            r: response.r,
+            hit: response.hit
+          });
+          this.drawGraph();
         });
-        this.drawGraph();
       },
       error: (error) => {
         console.error('Error saving point:', error);
