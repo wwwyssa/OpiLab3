@@ -3,6 +3,7 @@ plugins {
 	id 'org.springframework.boot' version '3.2.4'
 	id 'io.spring.dependency-management' version '1.1.4'
 	id 'nu.studer.jooq' version '9.0'
+    id 'com.github.node-gradle.node' version '5.0.0'
 }
 
 group = 'com.example'
@@ -72,7 +73,6 @@ jooq {
 						generatedAnnotationDate = false
 
 					}
-
 					target {
 						packageName = 'com.example.laba4.db'
 						directory = 'build/generated-src/jooq/main'
@@ -91,6 +91,30 @@ sourceSets {
 	}
 }
 
+def compileJavaSource(File inputDir, File outputDir, FileCollection classpath,
+                      List<File> additionalSourceDirs = []) {
+
+	def javaFiles = fileTree(inputDir).matching { include '**/*.java' }
+			.files.collect { it.absolutePath }
+
+	for (File additionalDir : additionalSourceDirs) {
+		if (additionalDir.exists()) {
+			javaFiles.addAll(fileTree(additionalDir).matching { include '**/*.java' }
+					.files.collect { it.absolutePath })
+		}
+	}
+
+	outputDir.mkdirs()
+
+	def cmdLine = ['javac', '-d', outputDir.absolutePath, '-cp', classpath.asPath] + javaFiles
+
+	println "Compiling ${javaFiles.size()} Java files to ${outputDir.absolutePath}"
+
+	exec {
+		commandLine = cmdLine
+	}
+}
+
 tasks.named('compileJava') {
 	dependsOn tasks.named('generateJooq')
 }
@@ -99,11 +123,68 @@ springBoot {
 	mainClass = 'com.example.laba4.Laba4Application'
 }
 
+tasks.named('generateJooq') {
+    inputs.file('src/main/resources/init.sql')
+    allInputsDeclared = true
+    outputs.dir('build/generated-src/jooq/main/com/example/laba4/db')
+}
 
 tasks.register('compile') {
 	group = 'build'
-	dependsOn tasks.named('compileJava')
+	description = 'Compile Java source files'
+	dependsOn tasks.named('generateJooq')
+
+	doLast {
+		def srcDir = file('src/main/java')
+		def genSrcDir = file('build/generated-src/jooq/main')
+		def outDir = file('build/classes/java/main')
+		def classpath = sourceSets.main.compileClasspath
+
+		compileJavaSource(srcDir, outDir, classpath, [genSrcDir])
+	}
 }
+
+tasks.register('myClean') {
+    group = 'custom'
+    description = 'Deletes build dir.'
+    outputs.upToDateWhen {
+        !file('build').exists()
+    }
+    doLast {
+        delete 'build'
+    }
+}
+
+tasks.register('startFront'){
+	group = 'custom'
+	description = 'start frontend by npm'
+	doLast {
+		exec {
+			workingDir = file('frontend')
+			commandLine = ['cmd', '/c', 'ng', 'serve', '--host', '0.0.0.0', '--port', '4200']
+
+		}
+	}
+}
+
+tasks.register('killFront'){
+	group = 'custom'
+	description = 'kill front process'
+	doLast{
+		exec{
+			commandLine = ['cmd', '/c', 'netstat', '-ano', '|', 'findstr', ':4200', '>', 'tmp.txt']
+		}
+		exec{
+			def fileOut = file('tmp.txt')
+			String s = fileOut.text
+			def tmp = s.split()[-1]
+			println(tmp)
+			commandLine = ['cmd', '/c', 'taskkill', '/PID', tmp, '/F']
+			delete 'tmp.txt'
+		}
+	}
+}
+
 
 
 tasks.register('music') {
@@ -112,7 +193,6 @@ tasks.register('music') {
 		try {
 			if (!java.awt.Desktop.isDesktopSupported()) return
 			def musicFile = rootProject.file('lowcortizol.mp3')
-			if (!musicFile.exists()) return
 			java.awt.Desktop.getDesktop().open(musicFile)
 		} catch (Exception e) {
 		}
@@ -124,20 +204,20 @@ tasks.named('bootJar') {
 }
 
 tasks.named('build') {
+	dependsOn tasks.named('test')
 	finalizedBy(tasks.named('music'))
 }
 
 tasks.named('test') {
-	useJUnitPlatform {
+	useJunitPlatform{
 		includeTags 'unit'
 	}
-	outputs.upToDateWhen { false }
+	outputs.upToDateWhen {false}
 	reports {
-        html.required = false
-        junitXml.required = true
-    }
+		html.required = false;
+		junitXml.required = true;
+	}
 }
-
 
 tasks.register('functionalTest', Test) {
 	group = 'verification'
@@ -152,11 +232,6 @@ tasks.register('functionalTest', Test) {
 	}
 	systemProperty 'selenium.headless', System.getProperty('selenium.headlessв')
 }
-
-tasks.named('check') {
-	dependsOn tasks.named('functionalTest')
-}
-
 
 tasks.register('report') {
     group = 'verification'
@@ -185,3 +260,6 @@ tasks.register('report') {
         }
     }
 }
+
+
+

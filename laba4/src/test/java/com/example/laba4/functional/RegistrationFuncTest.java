@@ -118,11 +118,8 @@ class RegistrationFuncTest {
     @DisplayName("Ошибка отображается при пустом пароле")
     void testRegistrationWithEmptyPassword() {
         openRegistrationForm();
-
         driver.findElement(By.id("username")).sendKeys("testuser_" + System.currentTimeMillis());
-
         WebElement submitButton = driver.findElement(By.cssSelector("form .submit-btn[type='submit']"));
-
         Assertions.assertFalse(submitButton.isEnabled(), "Кнопка регистрации должна быть отключена с пустым паролем");
     }
 

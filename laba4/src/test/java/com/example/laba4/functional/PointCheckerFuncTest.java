@@ -2,8 +2,9 @@ package com.example.laba4.functional;
 
 import java.time.Duration;
 import java.util.List;
-import org.junit.jupiter.api.Assertions;
+
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
@@ -116,15 +117,19 @@ class PointCheckerFuncTest {
         });
     }
 
-    private void setY(double y) {
-        WebElement yInput = driver.findElement(By.cssSelector(".form-container input[type='number']"));
+    private void selectY(double y) {
+        WebElement yInput = wait.until(ExpectedConditions.presenceOfElementLocated(By.id("y-input")));
         yInput.clear();
         yInput.sendKeys(String.valueOf(y));
+        
+        // Триггерим события для Angular
+        ((org.openqa.selenium.JavascriptExecutor) driver).executeScript(
+            "arguments[0].dispatchEvent(new Event('input', {bubbles: true}));" +
+            "arguments[0].dispatchEvent(new Event('change', {bubbles: true}));",
+            yInput);
     }
 
-    private void submitFormPoint() {
-        driver.findElement(By.cssSelector(".form-container .submit-btn")).click();
-    }
+    
 
     private String lastTableHitText() {
         List<WebElement> rows = driver.findElements(By.cssSelector(".points-table tbody tr"));
@@ -143,16 +148,13 @@ class PointCheckerFuncTest {
             .perform();
     }
 
-    private void waitForNewPointAndAssertHit(boolean expectedHit) {
+    private void checkHit(boolean expectedHit) {
         String txt = lastTableHitText();
         if (expectedHit) Assertions.assertEquals("Пробитие", txt);
         else Assertions.assertEquals("Промах", txt);
         
     }
 
-    private int getPointsTableCount() {
-        return driver.findElements(By.cssSelector(".points-table tbody tr")).size();
-    }
 
     private void triggerR3Clicks() {
         String value = "3";
@@ -166,9 +168,15 @@ class PointCheckerFuncTest {
         }
     }
 
+    private void logout() {
+        wait.until(ExpectedConditions.elementToBeClickable(By.cssSelector(".logout-btn"))).click();
+        wait.until(ExpectedConditions.urlContains("/auth"));
+        wait.until(ExpectedConditions.textToBe(By.tagName("h1"), "Вход"));
+    }
+
     @Test
-    @DisplayName("Canvas click points: 3 hits, 2 misses")
-    void testCanvasClicksHitsAndMisses() {
+    @DisplayName("Canvas click points: 3 hits")
+    void testCanvasClicksHits() {
         String u = "test_" + System.currentTimeMillis();
         String p = "123";
         registerAndGoHome(u, p);
@@ -179,24 +187,119 @@ class PointCheckerFuncTest {
 
         clickCanvasAt(1, 1);
         triggerR3Clicks();
-        waitForNewPointAndAssertHit(true);
+        checkHit(true);
 
         clickCanvasAt(2, 0);
         triggerR3Clicks();
-        waitForNewPointAndAssertHit(true);
+        checkHit(true);
 
         clickCanvasAt(-1, -1);
         triggerR3Clicks();
-        waitForNewPointAndAssertHit(true);
+        checkHit(true);
+    }
 
+    @Test
+    @DisplayName("Check misses")
+    void testCanvasClickMisses(){
+        String u = "test_" + System.currentTimeMillis();
+        String p = "123";
+        registerAndGoHome(u, p);
+        openHome();
+
+        selectR(5);
         clickCanvasAt(4, 4);
         triggerR3Clicks();
-        waitForNewPointAndAssertHit(false);
+        checkHit(false);
+
 
         clickCanvasAt(-4, 0);
         triggerR3Clicks();
-        waitForNewPointAndAssertHit(false);
+        checkHit(false);
+        
     }
+
+    @Test
+    @DisplayName("Same (x,y) different R")
+    void testHitDetectionForDifferentRValues() {
+        String u = "test_r_values_" + System.currentTimeMillis();
+        String p = "123";
+        registerAndGoHome(u, p);
+        openHome();
+
+        double testX = 2;
+        double testY = 2;
+        selectR(2);
+        clickCanvasAt(testX, testY);
+        triggerR3Clicks();
+        checkHit(false);
+        selectR(3);
+        clickCanvasAt(testX, testY);
+        triggerR3Clicks();
+        checkHit(true);
+
+        selectR(4);
+        clickCanvasAt(testX, testY);
+        triggerR3Clicks();
+        checkHit(true);
+
+        selectR(1);
+        clickCanvasAt(testX, testY);
+        triggerR3Clicks();
+        checkHit(false);
+        List<WebElement> rows = driver.findElements(By.cssSelector(".points-table tbody tr"));
+        Assertions.assertEquals(4, rows.size(), "Should have 4 points in table");
+    }
+
+    @Test
+    @DisplayName("Logout clears auth state and redirects to auth page")
+    void testLogout() {
+        String u = "test_" + System.currentTimeMillis();
+        String p = "123";
+        registerAndGoHome(u, p);
+
+        openHome();
+        logout();
+
+        Assertions.assertEquals("", (String) ((org.openqa.selenium.JavascriptExecutor) driver)
+                .executeScript("return localStorage.getItem('token') ?? '';"));
+    }
+
+    @Test
+    @DisplayName("Graph updates correctly when R value changes")
+    void testGraphUpdateOnRChange() throws InterruptedException {
+        String u = "test_" + System.currentTimeMillis();
+        registerAndGoHome(u, "123");
+        openHome();
+
+        selectR(1);
+        String canvasData1 = (String) ((org.openqa.selenium.JavascriptExecutor) driver).executeScript(
+                "const canvas = document.getElementById('canvas');" +
+                "const ctx = canvas.getContext('2d');" +
+                "return canvas.toDataURL();");
+
+        selectR(5);
+        String canvasData5 = (String) ((org.openqa.selenium.JavascriptExecutor) driver).executeScript(
+                "const canvas = document.getElementById('canvas');" +
+                "const ctx = canvas.getContext('2d');" +
+                "return canvas.toDataURL();");
+
+        Assertions.assertNotEquals(canvasData1, canvasData5, "Canvas should be redrawn with different R values");
+    }
+
+    @Test
+    @DisplayName("unauthtorazed user")
+    void testUnAuthUser() {
+        String expectedUrl = AUTH_URL;
+        driver.get(HOME_URL);
+        wait.until(ExpectedConditions.or(
+                ExpectedConditions.urlContains("/auth"),
+                ExpectedConditions.urlToBe(AUTH_URL)
+        ));
+        String currentUrl = driver.getCurrentUrl();
+        Assertions.assertEquals(expectedUrl, currentUrl,
+                String.format("Expected URL: %s, but got: %s", expectedUrl, currentUrl));
+    }
+
 
 
 }
